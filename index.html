@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.5/require.min.js"></script>
+
+<script>
+  require.config({
+    paths: {
+      d3: "http://d3js.org/d3.v4.min"
+    }
+  });
+</script>
+<script>
+  require(["js/force"], function (force) {
+    var sim = new force.Force(500,500)
+        .fetch( (name) => {return {name: name}} )
+        .root_key("bobby");
+    sim.init().then(() => {console.log(sim)});
+  });
+</script>
+</body>
