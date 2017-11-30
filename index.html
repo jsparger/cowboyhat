@@ -16,7 +16,14 @@
     var sim = new force.Force(500,500)
         .fetch( (name) => {return {name: name}} )
         .root_key("bobby");
-    sim.init().then(() => {console.log(sim)});
+    sim.init();
+    
+    setTimeout(() => {
+      sim._data = sim._data.concat([{name: "larry"}, {name: "moe"}, {name: "curly"}]);
+      sim.update();
+      console.log(sim);
+    }, 5000);
+
   });
 </script>
 </body>
