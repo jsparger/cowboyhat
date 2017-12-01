@@ -17,9 +17,9 @@
         .fetch( (name) => {return {name: name}} )
         .root_key("bobby");
     sim.init();
-    
+
     setTimeout(() => {
-      sim._data = sim._data.concat([{name: "larry"}, {name: "moe"}, {name: "curly"}]);
+      sim._data = sim._data.concat([{name: "larry", parent: "root"}, {name: "moe", parent: "root"}, {name: "curly",parent: "root"}]);
       sim.update();
       console.log(sim);
     }, 5000);

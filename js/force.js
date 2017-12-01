@@ -22,6 +22,7 @@ define(["d3"], function (d3) {
     }
 
     async init() {
+
       // create an svg element and select it.
       // setting the width and height is very important
       this._svg = d3.select("body").append("svg")
@@ -29,6 +30,7 @@ define(["d3"], function (d3) {
         .attr("height", this._height);
 
       this._nodes = this._svg.append("g").selectAll(".node");
+      this._links = this._svg.append("g").attr("stroke", "#000").attr("stroke-width", 1.5).selectAll(".link");
 
       // create a border for the svg.
       this._svg.append("rect")
@@ -43,16 +45,16 @@ define(["d3"], function (d3) {
       // fetch first data from source:
       //this._data = [await this._fetch(this._root_key)];
       // for example with a few balls
-      this._data = [{name: "steve"}, {name: "joe"}, {name: "robert"}];
+      this._data = [{name: "root"}, {name: "steve", parent: "root"}, {name: "joe", parent: "steve"}, {name: "robert", parent: "steve"}];
 
       // initialize the simulation
       this._sim = d3.forceSimulation()
           .force("charge", d3.forceManyBody().strength(-500))
           // .force("gravity", d3.forceManyBody().strength(100))
-          // .force("link", d3.forceLink(links))
+          .force("link", d3.forceLink().distance(5))
           .force("forceX", d3.forceX(this._width/2))
           .force("forceY", d3.forceY(this._height/2))
-          // .force("center", d3.forceCenter(this._width/2, this._height/2))
+          .force("center", d3.forceCenter(this._width/2, this._height/2))
           // .force("radial", d3.forceRadial(100, this._width/2, this._height/2))
           .on("tick", this.tick.bind(this));
 
@@ -61,13 +63,26 @@ define(["d3"], function (d3) {
     }
 
     update() {
+
+      // turn our data into a hierarchy.
+      this._hierarchy = d3.stratify()
+      .id(function(d) { return d.name; })
+      .parentId(function(d) { return d.parent ? d.parent : ""; })
+      (this._data);
+
+      // get the nodes
+      this._nodeData = this._hierarchy.descendants();
+
+      // get the links from the hierarchy
+      this._linkData = this._hierarchy.links();
+
       // To understand this code, check out this explanation of d3.js selections.
       // detailed:   https://bost.ocks.org/mike/selection/
       // simplified: https://bost.ocks.org/mike/join/
 
       // Join our new _data with the old data in the selection (initially none)
       // "_nodes" now represents nodes which existed both our new and old data.
-      this._nodes = this._nodes.data(this._data);
+      this._nodes = this._nodes.data(this._nodeData, function (d) { return d.name; });
 
       // remove any nodes which associated with data we deleted (the exit group)
       this._nodes.exit().remove();
@@ -80,8 +95,17 @@ define(["d3"], function (d3) {
           .attr("r", 10)
         .merge(this._nodes);
 
-      this._sim.nodes(this._data);
-      this._sim.alpha(5).restart();
+      // update _links
+      this._links = this._links.data(this._linkData, function(d) { return d.source.id + "-" + d.target.id; });
+      this._links.exit().remove();
+
+      this._links = this._links.enter()
+          .append("line")
+          .merge(this._links);
+
+      this._sim.nodes(this._nodeData);
+      this._sim.force("link").links(this._linkData);
+      this._sim.alpha(1).restart();
     }
 
     tick() {
@@ -90,6 +114,14 @@ define(["d3"], function (d3) {
       this._nodes
         .attr("cx", function(d) { return d.x; })
         .attr("cy", function(d) { return d.y; });
+
+      // update the endpoints of the lines based on their source and end node
+      // locations.
+      this._links
+        .attr("x1", function(d) { return d.source.x; })
+        .attr("y1", function(d) { return d.source.y; })
+        .attr("x2", function(d) { return d.target.x; })
+        .attr("y2", function(d) { return d.target.y; });
     }
   }
 
