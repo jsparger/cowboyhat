@@ -52,8 +52,8 @@ define(["d3"], function (d3) {
           .force("charge", d3.forceManyBody().strength(-500))
           // .force("gravity", d3.forceManyBody().strength(100))
           .force("link", d3.forceLink().distance(5))
-          .force("forceX", d3.forceX(this._width/2))
-          .force("forceY", d3.forceY(this._height/2))
+          // .force("forceX", d3.forceX(this._width/2))
+          // .force("forceY", d3.forceY(this._height/2))
           .force("center", d3.forceCenter(this._width/2, this._height/2))
           // .force("radial", d3.forceRadial(100, this._width/2, this._height/2))
           .on("tick", this.tick.bind(this));
@@ -80,20 +80,26 @@ define(["d3"], function (d3) {
       // detailed:   https://bost.ocks.org/mike/selection/
       // simplified: https://bost.ocks.org/mike/join/
 
-      // Join our new _data with the old data in the selection (initially none)
-      // "_nodes" now represents nodes which existed both our new and old data.
+      // Join our new _data with the old data in the selection (initially none),
+      // updating any nodes associated with elements in _data and creating new.
+      // nodes for new elements. In this case, we use the "name" property of
+      // the node as the node "id".
+
+      // After this call, we have four selections available to us:
+      // _nodes: Nodes in both the new and old data which were updated.
+      // _nodes.enter() : Nodes associated with any new elements in the _data
+      // _nodes.exit()  : Nodes associated with any elements deleted from _data.
       this._nodes = this._nodes.data(this._nodeData, function (d) { return d.name; });
 
-      // remove any nodes which associated with data we deleted (the exit group)
+      // remove any nodes in the exit group.
       this._nodes.exit().remove();
 
-      // for every new piece of data, (the "enter" group), create a circle in
-      // the svg group. Then, merge the "enter" group with _nodes. Now _nodes
-      // is a selection with one node per piece of element in _data.
+      // for every new piece of data, create a circle in the svg group.
+      // then merge the enter group with _nodes and store the result.
       this._nodes = this._nodes.enter()
           .append("circle")
           .attr("r", 10)
-        .merge(this._nodes);
+          .merge(this._nodes);
 
       // update _links
       this._links = this._links.data(this._linkData, function(d) { return d.source.id + "-" + d.target.id; });

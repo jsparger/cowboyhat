@@ -2,12 +2,14 @@
 <meta charset="utf-8">
 
 <body>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.5/require.min.js"></script>
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.5/require.min.js"></script> -->
+<script src="vendors/require.min.js"></script>
 
 <script>
   require.config({
     paths: {
-      d3: "http://d3js.org/d3.v4.min"
+      // d3: "http://d3js.org/d3.v4.min"
+      d3: "vendors/d3.v4.min"
     }
   });
 </script>
@@ -18,11 +20,19 @@
         .root_key("bobby");
     sim.init();
 
-    setTimeout(() => {
+    setInterval(() => {
       sim._data = sim._data.concat([{name: "larry", parent: "root"}, {name: "moe", parent: "root"}, {name: "curly",parent: "root"}]);
       sim.update();
       console.log(sim);
     }, 5000);
+
+    setTimeout(() => {
+      setInterval( () => {
+          sim._data.pop(); sim._data.pop(); sim._data.pop();// = [{name: "root"}, {name: "steve", parent: "root"}, {name: "joe", parent: "steve"}, {name: "robert", parent: "steve"}];
+          sim.update();
+          console.log(sim);
+        }, 5000);
+    }, 2500);
 
   });
 </script>
