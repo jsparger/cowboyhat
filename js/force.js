@@ -52,8 +52,8 @@ define(["d3"], function (d3) {
           .force("charge", d3.forceManyBody().strength(-500))
           // .force("gravity", d3.forceManyBody().strength(300))
           .force("link", d3.forceLink().distance(10))
-          .force("forceX", d3.forceX(this._width/2))
-          .force("forceY", d3.forceY(this._height/2))
+          // .force("forceX", d3.forceX(this._width/2))
+          // .force("forceY", d3.forceY(this._height/2))
           // .force("center", d3.forceCenter(this._width/2, this._height/2))
           // .force("radial", d3.forceRadial(100, this._width/2, this._height/2))
           .on("tick", this.tick.bind(this));
@@ -63,6 +63,10 @@ define(["d3"], function (d3) {
     }
 
     create_hierarchy() {
+
+      // This whole method is a hack to get the links made for us.
+      // At some point this is prbably more confusing than building the
+      // links ourselves.
 
       // turn our _data into a hierarchy (tree);
       // use "name" as the id
@@ -74,10 +78,17 @@ define(["d3"], function (d3) {
       (this._data);
 
       // get the nodes
+      // node.data is where we find the objects from _data
       this._nodeData = this._hierarchy.descendants();
 
       // get the links from the hierarchy
+      // this will return links between the nodes, but we want links between the
+      // _data, so let's replace them.
       this._linkData = this._hierarchy.links();
+      this._linkData.forEach( (l) => {
+        l.source = l.source.data;
+        l.target = l.target.data;
+      });
     }
 
     update_selections() {
@@ -94,7 +105,7 @@ define(["d3"], function (d3) {
       // _nodes: Nodes in both the new and old data which were updated.
       // _nodes.enter() : Nodes associated with any new elements in the _data
       // _nodes.exit()  : Nodes associated with any elements deleted from _data.
-      this._nodes = this._nodes.data(this._nodeData, function (d) { return d.data.name });
+      this._nodes = this._nodes.data(this._data, function (d) { return d.name });
 
       // remove any nodes in the exit group.
       this._nodes.exit().remove();
@@ -106,17 +117,8 @@ define(["d3"], function (d3) {
           .attr("r", 10)
           .merge(this._nodes);
 
-      // if we have some specified initial position in the _data,
-      // copy that into the node the force simulation will update.
-      this._nodes.each( (d) => {
-        if (!d.x && d.data.x) d.x = d.data.x;
-        if (!d.y && d.data.y) d.y = d.data.y;
-        if (!d.fx && d.data.fx) d.fx = d.data.fx;
-        if (!d.fy && d.data.fy) d.fy = d.data.fy;
-      });
-
       // update _links
-      this._links = this._links.data(this._linkData, function(d) { return d.source.id + "-" + d.target.id; });
+      this._links = this._links.data(this._linkData, function(d) { return d.source.name + "-" + d.target.name; });
       this._links.exit().remove();
 
       this._links = this._links.enter()
@@ -125,7 +127,7 @@ define(["d3"], function (d3) {
     }
 
     restart_simulation() {
-      this._sim.nodes(this._nodeData);
+      this._sim.nodes(this._data);
       this._sim.force("link").links(this._linkData);
       this._sim.alpha(1).restart();
     }
@@ -144,11 +146,6 @@ define(["d3"], function (d3) {
     }
 
     tick() {
-      // cache this position in the objects in _data.
-      this._nodes.each( (d) => {
-        if (d.x) d.data.x = d.x;
-        if (d.y) d.data.y = d.y;
-      });
 
       // update the positions of the nodes in the svg based on their coordinates
       // as computed by the force layout.
