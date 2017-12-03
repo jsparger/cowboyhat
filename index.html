@@ -14,25 +14,46 @@
   });
 </script>
 <script>
+
+  let sim = null;
+  let stooges = null;
   require(["js/force"], function (force) {
-    var sim = new force.Force(500,500)
+
+    sim = new force.Force(500,500)
         .fetch( (name) => {return {name: name}} )
         .root_key("bobby");
     sim.init();
 
-    setInterval(() => {
-      sim._data = sim._data.concat([{name: "larry", parent: "root"}, {name: "moe", parent: "root"}, {name: "curly",parent: "root"}]);
+    stooges = [
+      {name: "larry", parent: "root"},
+      {name: "moe", parent: "root"},
+      {name: "curly",parent: "root"}
+    ]
+
+    cycle = function () {
+      // this will happen later, but start the timer now.
+      setTimeout( () => {
+          stooges = sim._data.splice(4,3);
+          // sim._data.pop(); sim._data.pop(); sim._data.pop();// = [{name: "root"}, {name: "steve", parent: "root"}, {name: "joe", parent: "steve"}, {name: "robert", parent: "steve"}];
+          sim.update();
+        }, 2500);
+
+      // this will happen first
+      sim._data = sim._data.concat(stooges);
       sim.update();
-      console.log(sim);
-    }, 5000);
+    };
 
     setTimeout(() => {
-      setInterval( () => {
-          sim._data.pop(); sim._data.pop(); sim._data.pop();// = [{name: "root"}, {name: "steve", parent: "root"}, {name: "joe", parent: "steve"}, {name: "robert", parent: "steve"}];
-          sim.update();
-          console.log(sim);
-        }, 5000);
+      cycle();
+      // loop forever.
+      setInterval(() => {
+        cycle();
+      }, 5000);
     }, 2500);
+
+
+
+
 
   });
 </script>

@@ -45,16 +45,16 @@ define(["d3"], function (d3) {
       // fetch first data from source:
       //this._data = [await this._fetch(this._root_key)];
       // for example with a few balls
-      this._data = [{name: "root"}, {name: "steve", parent: "root"}, {name: "joe", parent: "steve"}, {name: "robert", parent: "steve"}];
+      this._data = [{name: "root", fx: this._width/2+30, fy: this._height/2+30}, {name: "steve", parent: "root"}, {name: "joe", parent: "steve"}, {name: "robert", parent: "steve"}];
 
       // initialize the simulation
       this._sim = d3.forceSimulation()
           .force("charge", d3.forceManyBody().strength(-500))
-          // .force("gravity", d3.forceManyBody().strength(100))
-          .force("link", d3.forceLink().distance(5))
-          // .force("forceX", d3.forceX(this._width/2))
-          // .force("forceY", d3.forceY(this._height/2))
-          .force("center", d3.forceCenter(this._width/2, this._height/2))
+          // .force("gravity", d3.forceManyBody().strength(300))
+          .force("link", d3.forceLink().distance(10))
+          .force("forceX", d3.forceX(this._width/2))
+          .force("forceY", d3.forceY(this._height/2))
+          // .force("center", d3.forceCenter(this._width/2, this._height/2))
           // .force("radial", d3.forceRadial(100, this._width/2, this._height/2))
           .on("tick", this.tick.bind(this));
 
@@ -62,12 +62,15 @@ define(["d3"], function (d3) {
       this.update();
     }
 
-    update() {
+    create_hierarchy() {
 
-      // turn our data into a hierarchy.
+      // turn our _data into a hierarchy (tree);
+      // use "name" as the id
+      // use "parent" as the parentID unless it doesn't exist. In that case,
+      // return an empty string, which signifies the root node.
       this._hierarchy = d3.stratify()
       .id(function(d) { return d.name; })
-      .parentId(function(d) { return d.parent ? d.parent : ""; })
+      .parentId(function(d) { return d.parent ? d.parent : null; })
       (this._data);
 
       // get the nodes
@@ -75,7 +78,9 @@ define(["d3"], function (d3) {
 
       // get the links from the hierarchy
       this._linkData = this._hierarchy.links();
+    }
 
+    update_selections() {
       // To understand this code, check out this explanation of d3.js selections.
       // detailed:   https://bost.ocks.org/mike/selection/
       // simplified: https://bost.ocks.org/mike/join/
@@ -89,7 +94,7 @@ define(["d3"], function (d3) {
       // _nodes: Nodes in both the new and old data which were updated.
       // _nodes.enter() : Nodes associated with any new elements in the _data
       // _nodes.exit()  : Nodes associated with any elements deleted from _data.
-      this._nodes = this._nodes.data(this._nodeData, function (d) { return d.name; });
+      this._nodes = this._nodes.data(this._nodeData, function (d) { return d.data.name });
 
       // remove any nodes in the exit group.
       this._nodes.exit().remove();
@@ -101,6 +106,15 @@ define(["d3"], function (d3) {
           .attr("r", 10)
           .merge(this._nodes);
 
+      // if we have some specified initial position in the _data,
+      // copy that into the node the force simulation will update.
+      this._nodes.each( (d) => {
+        if (!d.x && d.data.x) d.x = d.data.x;
+        if (!d.y && d.data.y) d.y = d.data.y;
+        if (!d.fx && d.data.fx) d.fx = d.data.fx;
+        if (!d.fy && d.data.fy) d.fy = d.data.fy;
+      });
+
       // update _links
       this._links = this._links.data(this._linkData, function(d) { return d.source.id + "-" + d.target.id; });
       this._links.exit().remove();
@@ -108,13 +122,34 @@ define(["d3"], function (d3) {
       this._links = this._links.enter()
           .append("line")
           .merge(this._links);
+    }
 
+    restart_simulation() {
       this._sim.nodes(this._nodeData);
       this._sim.force("link").links(this._linkData);
       this._sim.alpha(1).restart();
     }
 
+    update() {
+
+      // rearange our _data to be compatible with d3.
+      this.create_hierarchy();
+
+      // process any new or deleted data. This will also update the elements
+      // in the visualization
+      this.update_selections();
+
+      // run the force simulation to animate the visualization
+      this.restart_simulation();
+    }
+
     tick() {
+      // cache this position in the objects in _data.
+      this._nodes.each( (d) => {
+        if (d.x) d.data.x = d.x;
+        if (d.y) d.data.y = d.y;
+      });
+
       // update the positions of the nodes in the svg based on their coordinates
       // as computed by the force layout.
       this._nodes
