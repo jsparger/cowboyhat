@@ -99,6 +99,8 @@ define(["d3"], function (d3) {
 
         // for each linked node named "n" in the relationship "r".
         for (let n of target_names) {
+          // fetch the node
+          this._fetch(n);
           // if we don't already have a node with the linked node's name,
           // create one.
           let linked_node = this._data[n];
