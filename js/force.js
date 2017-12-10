@@ -62,7 +62,7 @@ define(["d3"], function (d3) {
       this._sim = d3.forceSimulation()
           .force("charge", d3.forceManyBody().strength(-100))
           // .force("gravity", d3.forceManyBody().strength(300))
-          .force("link", d3.forceLink().distance(100))
+          .force("link", d3.forceLink().distance(100).strength(2))
           // .force("forceX", d3.forceX(this._width/2))
           // .force("forceY", d3.forceY(this._height/2))
           .force("center", d3.forceCenter(this._width/2, this._height/2))
@@ -77,6 +77,11 @@ define(["d3"], function (d3) {
       // create a new node from the input CCDB node (this should be abstracted)
       let d = this.make_node(node.name);
 
+      // copy the old coordinates
+      let old_d = this._data[d.name];
+      d.x = old_d.x; d.vx = old_d.vx; d.fx = old_d.fx;
+      d.y = old_d.y; d.vy = old_d.vy; d.fy = old_d.fy;
+
       // look for links in the CCDB node
       let relationships = ['children','controls','powers'];
       for (let r of relationships) {
@@ -90,6 +95,8 @@ define(["d3"], function (d3) {
           let linked_node = this._data[n];
           if (!linked_node) {
             linked_node = this.make_node(n);
+            linked_node.x = d.x;
+            linked_node.y = d.y
             this._data[n] = linked_node;
           }
           // create a link and put it in d.
@@ -159,8 +166,12 @@ define(["d3"], function (d3) {
         .text(function (d) {
           return d.name;
         })
+
       // merge the enter group with _nodes to store the results
       this._nodes = nodeEnter.merge(this._nodes);
+
+      this._nodes.selectAll("circle")
+        .style("fill", this.color.bind(this));
     }
 
     update_links() {
@@ -237,30 +248,53 @@ define(["d3"], function (d3) {
       if (d3.event.defaultPrevented) return; // ignore drag
       if (d.busy) return;
       d.busy = true;
+      this.update();
       if (!d.fetched) {
-        d = this.assimilate(await this._fetch(d.name));
+        this.assimilate(await this._fetch(d.name));
       }
       // TODO:
       // d.expanded ? this._collapse(this) : this._expand(this);
-      this.update();
       d.busy = false;
+      this.update();
     }
 
     dragstarted(d) {
+      // TODO: I don't know what this is doing.
       if (!d3.event.active) this._sim.alphaTarget(0.3).restart();
       d.fx = d.x;
       d.fy = d.y;
     }
 
     dragged(d) {
-      d.fx = d3.event.x;
-      d.fy = d3.event.y;
+      let node = this._data[d.name];
+      node.fx = d3.event.x;
+      node.fy = d3.event.y;
     }
 
     dragended(d) {
+      // TODO: I don't know what this is doing.
       if (!d3.event.active) this._sim.alphaTarget(0);
       d.fx = null;
       d.fy = null;
+    }
+
+    color(d) {
+      let node = this._data[d.name];
+  		if (d.busy) {
+        console.log("busy");
+      	return "#20FF00"; // busy
+      }
+      else if (!node.fetched) {
+        return "#3182bd"; // collapsed package
+      }
+      else if (node.links.length > 0) {
+        console.log("has links");
+        return "#c6dbef"; // parent
+      }
+      else {
+        console.log("leaf");
+        return "#fd8d3c"; // leaf node
+      }
     }
 
   }
