@@ -71,7 +71,7 @@ define(["d3"], function (d3) {
       this._sim = d3.forceSimulation()
           .force("charge", d3.forceManyBody().strength(-100))
           // .force("gravity", d3.forceManyBody().strength(300))
-          .force("link", d3.forceLink().distance(100).strength(2))
+          .force("link", d3.forceLink().distance(100).strength(1))
           // .force("forceX", d3.forceX(this._width/2))
           // .force("forceY", d3.forceY(this._height/2))
           .force("center", d3.forceCenter(this._width/2, this._height/2))
@@ -159,17 +159,16 @@ define(["d3"], function (d3) {
       let nodeEnter = this._nodes.enter()
           .append("g")
           .attr("class","node")
+          .on("click", this.click.bind(this))
+          .on("dblclick", this.dblclick.bind(this))
           .call(d3.drag()
             .on("start", this.dragstarted.bind(this))
             .on("drag", this.dragged.bind(this))
             .on("end", this.dragended.bind(this)));
-
       // append a circle to each group to represent the node. Make it clickable,
       //  binding "this" so it behaves correctly.
       nodeEnter.append("circle")
-        .attr("r", 5)
-        .on("click", this.click.bind(this))
-        .on("dblclick", this.dblclick.bind(this));
+        .attr("r", 5);
       // append a text to each group to act as the node label.
       nodeEnter.append("text")
         .attr("dy", "1.35em")
@@ -259,20 +258,20 @@ define(["d3"], function (d3) {
 
     async click(d) {
       if (d3.event.defaultPrevented) return; // ignore drag
-      if (d.busy) return;
+      // if (d.busy) return;
       d.busy = true;
       this._selected = this._data[d.name];
-      this.update();
+      this.update_selections();
       this._nodeSelect(await this._fetch(d.name));
       d.busy = false;
-      this.update();
+      this.update_selections();
     }
 
     async dblclick(d) {
       if (d3.event.defaultPrevented) return; // ignore drag
-      if (d.busy) return;
+      // if (d.busy) return;
       d.busy = true;
-      this.update();
+      this.update_selections();
       if (!d.fetched) {
         this.assimilate(await this._fetch(d.name));
       }

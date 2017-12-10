@@ -93,7 +93,7 @@
     let options = {};
     let editor = new JSONEditor(container, options);
     db = new ccdb.CCDB("https://cors-anywhere.herokuapp.com/https://ccdb.esss.lu.se/");
-    sim = new force.Force(500,500)
+    sim = new force.Force(1000,1000)
         .fetch( db.get_slot.bind(db) )
         .nodeSelect( editor.set.bind(editor) )
         .root_key("_ROOT");
