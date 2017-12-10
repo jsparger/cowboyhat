@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<head>
+    <!-- when using the mode "code", it's important to specify charset utf-8 -->
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+    <style type="text/css">
+       #jsoneditor {
+         width: 500px;
+         height: 500px;
+       }
+     </style>
+
+     <style>
+       .node circle {
+          cursor: pointer;
+          stroke: #3182bd;
+          stroke-width: 1.5px;
+        }
+        .node text {
+          font: 10px sans-serif;
+          pointer-events: none;
+          text-anchor: middle;
+        }
+
+        .link text {
+          font: 10px sans-serif;
+          pointer-events: none;
+          text-anchor: middle;
+        }
+
+        .link line {
+          fill: none;
+          stroke: #9ecae1;
+          stroke-width: 1.5px;
+        }
+     </style>
+     <link rel="stylesheet" type="text/css" href="vendors/jsoneditor.min.css"></head>
+
+<body>
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.5/require.min.js"></script> -->
+<script src="vendors/require.min.js"></script>
+<div id="jsoneditor" style="width: 400px; height: 400px;"></div>
+
+<script>
+  require.config({
+    paths: {
+      // d3: "http://d3js.org/d3.v4.min"
+      d3: "vendors/d3.v4.min",
+      jsoneditor: "vendors/jsoneditor.min",
+    }
+  });
+</script>
+
+<script>
+  require(['jsoneditor','d3'], function(JSONEditor, d3) {
+    // create the editor
+        var container = document.getElementById("jsoneditor");
+        var options = {};
+        var editor = new JSONEditor(container, options);
+
+        // set json
+        // var json = {
+        //     "Array": [1, 2, 3],
+        //     "Boolean": true,
+        //     "Null": null,
+        //     "Number": 123,
+        //     "Object": {"a": "b", "c": "d"},
+        //     "String": "Hello World"
+        // }
+        let query = function(url) {
+          return new Promise(function (resolve, reject) {
+            d3.json(url, function (error, result) {
+                error ? reject(error) : resolve(result);
+              });
+          });
+        }
+
+        let url = "https://cors-anywhere.herokuapp.com/https://ccdb.esss.lu.se/rest/slots/_ROOT";
+        query(url).then((json) => { editor.set(json);});
+        // editor.set(json);
+
+        // get json
+
+        // system.log(editor.get());
+  });
+</script>
+
+<script>
+  let sim = null;
+  let db = null;
+  require(["d3","js/force","js/ccdb"], (d3, force, ccdb) => {
+    console.log(d3);
+    console.log(force);
+    console.log(ccdb);
+    db = new ccdb.CCDB("https://cors-anywhere.herokuapp.com/https://ccdb.esss.lu.se/");
+    sim = new force.Force(500,500)
+        .fetch( db.get_slot.bind(db) )
+        .root_key("_ROOT");
+    sim.init();
+  });
+</script>
+</body>
