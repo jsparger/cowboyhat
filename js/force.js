@@ -66,6 +66,7 @@ define(["d3"], function (d3) {
       root_node.x = this._width/2;
       root_node.y = this._height/2;
       this._data[this._root_key] = root_node;
+      this._fetch(this._root_key);
 
       // initialize the simulation
       this._sim = d3.forceSimulation()
@@ -99,7 +100,7 @@ define(["d3"], function (d3) {
 
         // for each linked node named "n" in the relationship "r".
         for (let n of target_names) {
-          // fetch the node
+          // pre-fetch the node
           this._fetch(n);
           // if we don't already have a node with the linked node's name,
           // create one.
