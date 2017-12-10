@@ -17,7 +17,6 @@ define(["d3"], (d3) => {
     }
 
     async get_slot(name) {
-      console.log(this);
       if (this._nodes.hasOwnProperty(name)) {
         return this._nodes[name];
       }

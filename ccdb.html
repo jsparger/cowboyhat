@@ -50,7 +50,7 @@
   });
 </script>
 
-<script>
+<!-- <script>
   require(['jsoneditor','d3'], function(JSONEditor, d3) {
     // create the editor
         var container = document.getElementById("jsoneditor");
@@ -82,18 +82,20 @@
 
         // system.log(editor.get());
   });
-</script>
+</script> -->
 
 <script>
   let sim = null;
   let db = null;
-  require(["d3","js/force","js/ccdb"], (d3, force, ccdb) => {
-    console.log(d3);
-    console.log(force);
-    console.log(ccdb);
+  let editor = null;
+  require(["d3", "jsoneditor", "js/force","js/ccdb"], (d3, JSONEditor, force, ccdb) => {
+    let container = document.getElementById("jsoneditor");
+    let options = {};
+    let editor = new JSONEditor(container, options);
     db = new ccdb.CCDB("https://cors-anywhere.herokuapp.com/https://ccdb.esss.lu.se/");
-    sim = new force.Force(1000,1000)
+    sim = new force.Force(500,500)
         .fetch( db.get_slot.bind(db) )
+        .nodeSelect( editor.set.bind(editor) )
         .root_key("_ROOT");
     sim.init();
   });

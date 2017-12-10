@@ -10,6 +10,7 @@ define(["d3"], function (d3) {
       this._svg = null;
       this._width = width;
       this._height = height;
+      this._selected = null;
     }
 
     fetch(f) {
@@ -19,6 +20,11 @@ define(["d3"], function (d3) {
 
     root_key(key) {
       this._root_key = key;
+      return this;
+    }
+
+    nodeSelect(f) {
+      this._nodeSelect = f;
       return this;
     }
 
@@ -56,7 +62,10 @@ define(["d3"], function (d3) {
       // this._data = [{name: "root", fx: this._width/2+30, fy: this._height/2+30}, {name: "steve", parent: "root"}, {name: "joe", parent: "steve"}, {name: "robert", parent: "steve"}];
       // this._data = {this._root_key: {name: this._root_key}};
       this._data = {};
-      this._data[this._root_key] = this.make_node(this._root_key);
+      let root_node = this.make_node(this._root_key);
+      root_node.x = this._width/2;
+      root_node.y = this._height/2;
+      this._data[this._root_key] = root_node;
 
       // initialize the simulation
       this._sim = d3.forceSimulation()
@@ -159,7 +168,8 @@ define(["d3"], function (d3) {
       //  binding "this" so it behaves correctly.
       nodeEnter.append("circle")
         .attr("r", 5)
-        .on("click", this.click.bind(this));
+        .on("click", this.click.bind(this))
+        .on("dblclick", this.dblclick.bind(this));
       // append a text to each group to act as the node label.
       nodeEnter.append("text")
         .attr("dy", "1.35em")
@@ -251,6 +261,17 @@ define(["d3"], function (d3) {
       if (d3.event.defaultPrevented) return; // ignore drag
       if (d.busy) return;
       d.busy = true;
+      this._selected = this._data[d.name];
+      this.update();
+      this._nodeSelect(await this._fetch(d.name));
+      d.busy = false;
+      this.update();
+    }
+
+    async dblclick(d) {
+      if (d3.event.defaultPrevented) return; // ignore drag
+      if (d.busy) return;
+      d.busy = true;
       this.update();
       if (!d.fetched) {
         this.assimilate(await this._fetch(d.name));
@@ -284,18 +305,18 @@ define(["d3"], function (d3) {
     node_color(d) {
       let node = this._data[d.name];
   		if (d.busy) {
-        console.log("busy");
       	return "#20FF00"; // busy
+      }
+      else if (this._selected === node) {
+        return "red";
       }
       else if (!node.fetched) {
         return "#3182bd"; // collapsed package
       }
       else if (node.links.length > 0) {
-        console.log("has links");
         return "#c6dbef"; // parent
       }
       else {
-        console.log("leaf");
         return "#fd8d3c"; // leaf node
       }
     }
