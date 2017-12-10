@@ -60,7 +60,7 @@ define(["d3"], function (d3) {
 
       // initialize the simulation
       this._sim = d3.forceSimulation()
-          .force("charge", d3.forceManyBody().strength(-10))
+          .force("charge", d3.forceManyBody().strength(-100))
           // .force("gravity", d3.forceManyBody().strength(300))
           .force("link", d3.forceLink().distance(100))
           // .force("forceX", d3.forceX(this._width/2))
@@ -142,7 +142,12 @@ define(["d3"], function (d3) {
       // for every new piece of data (the enter grouop), create a new svg group
       let nodeEnter = this._nodes.enter()
           .append("g")
-          .attr("class","node");
+          .attr("class","node")
+          .call(d3.drag()
+            .on("start", this.dragstarted.bind(this))
+            .on("drag", this.dragged.bind(this))
+            .on("end", this.dragended.bind(this)));
+
       // append a circle to each group to represent the node. Make it clickable,
       //  binding "this" so it behaves correctly.
       nodeEnter.append("circle")
@@ -186,7 +191,6 @@ define(["d3"], function (d3) {
 
     restart_simulation() {
       this._sim.nodes(Object.values(this._data));
-      console.log(this._linkData);
       this._sim.force("link").links(this._linkData);
       this._sim.alpha(1).restart();
     }
@@ -230,7 +234,7 @@ define(["d3"], function (d3) {
     }
 
     async click(d) {
-      console.log(this);
+      if (d3.event.defaultPrevented) return; // ignore drag
       if (d.busy) return;
       d.busy = true;
       if (!d.fetched) {
@@ -240,6 +244,23 @@ define(["d3"], function (d3) {
       // d.expanded ? this._collapse(this) : this._expand(this);
       this.update();
       d.busy = false;
+    }
+
+    dragstarted(d) {
+      if (!d3.event.active) this._sim.alphaTarget(0.3).restart();
+      d.fx = d.x;
+      d.fy = d.y;
+    }
+
+    dragged(d) {
+      d.fx = d3.event.x;
+      d.fy = d3.event.y;
+    }
+
+    dragended(d) {
+      if (!d3.event.active) this._sim.alphaTarget(0);
+      d.fx = null;
+      d.fy = null;
     }
 
   }
