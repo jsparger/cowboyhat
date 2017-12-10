@@ -171,7 +171,7 @@ define(["d3"], function (d3) {
       this._nodes = nodeEnter.merge(this._nodes);
 
       this._nodes.selectAll("circle")
-        .style("fill", this.color.bind(this));
+        .style("fill", this.node_color.bind(this));
     }
 
     update_links() {
@@ -193,6 +193,9 @@ define(["d3"], function (d3) {
         });
       // merge the new link groups with the existing
       this._links = linkEnter.merge(this._links);
+
+      this._links.selectAll("line")
+        .style("stroke", this.link_color.bind(this));
     }
 
     update_selections() {
@@ -278,7 +281,7 @@ define(["d3"], function (d3) {
       d.fy = null;
     }
 
-    color(d) {
+    node_color(d) {
       let node = this._data[d.name];
   		if (d.busy) {
         console.log("busy");
@@ -295,6 +298,16 @@ define(["d3"], function (d3) {
         console.log("leaf");
         return "#fd8d3c"; // leaf node
       }
+    }
+
+    link_color(d) {
+      let colors = {
+        children: "#9ecae1",
+        powers: "red",
+        controls: "darkorange",
+      };
+
+      return colors[d.link_type];
     }
 
   }
