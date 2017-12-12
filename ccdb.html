@@ -5,12 +5,32 @@
     <style type="text/css">
        #jsoneditor {
          width: 500px;
-         height: 500px;
+         height: 100%;
+         background-color: rgba(255,255,255,0.9);
        }
      </style>
 
      <style>
-       .node circle {
+        #sidenav {
+          height: 100%;
+          width: 0;
+          position: fixed;
+          z-index: 1;
+          top: 0;
+          right: 0;
+          /*background-color: white;*/
+          overflow-x: hidden;
+          transition: 0.5s;
+          padding-top: 60px;
+        }
+        #force {
+          height: 100%;
+          /*width: 100%;*/
+          transition: margin-right .5s;
+          padding: 16px;
+          /*overflow-x: scroll;*/
+        }
+        .node circle {
           cursor: pointer;
           stroke: #3182bd;
           stroke-width: 1.5px;
@@ -38,7 +58,25 @@
 <body>
 <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.5/require.min.js"></script> -->
 <script src="vendors/require.min.js"></script>
-<div id="jsoneditor" style="width: 400px; height: 400px;"></div>
+<!-- <div id="jsoneditor" style="width: 400px; height: 400px;"></div> -->
+
+<div id="test">
+  <span style="font-size:30px;cursor:pointer" onclick="openNav()">
+    &#9776; open
+  </span>
+</div>
+<div id="sidenav">
+  <div id="jsoneditor" class="jsoneditor"></div>
+</div>
+<div id="force"></div>
+
+
+<script>
+function openNav() {
+    document.getElementById("sidenav").style.width = "500px";
+    document.getElementById("force").style.marginRight = "500px";
+}
+</script>
 
 <script>
   require.config({
@@ -95,7 +133,7 @@
     db = new ccdb.CCDB("https://cors-anywhere.herokuapp.com/https://ccdb.esss.lu.se/");
     sim = new force.Force(1000,1000)
         .fetch( db.get_slot.bind(db) )
-        .nodeSelect( editor.set.bind(editor) )
+        .nodeSelect( (json) => {editor.set(json); editor.expandAll();} )
         .root_key("_ROOT");
     sim.init();
   });
