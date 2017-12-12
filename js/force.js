@@ -38,8 +38,11 @@ define(["d3"], function (d3) {
       // setting the width and height is very important
       this._svg = d3.select("#force").append("svg")
         .attr("id", "forcesvg")
-        .attr("width", this._width)
-        .attr("height", this._height);
+        // .attr("width", this._width)
+        // .attr("height", this._height);
+        .attr("preserveAspectRatio", "xMinYMin meet")
+        .attr("viewBox", `0 0 ${this._width} ${this._height}`)
+        .classed("svg-content", true);
 
       // create groups in the svg for links and nodes
       // do links first so links will be drawn underneath nodes.
