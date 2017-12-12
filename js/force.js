@@ -121,6 +121,11 @@ define(["d3"], function (d3) {
       // indicate that we have fetched the node.
       d.fetched = true;
 
+      // make sure new node stays selected.
+      if (this._selected === old_d) {
+        this._selected = d;
+      }
+
       // add the newly populated node to our data, overriting any old one
       this._data[d.name] = d;
 
