@@ -4,15 +4,28 @@
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
     <style type="text/css">
        #jsoneditor {
-         width: 500px;
+         /*width: 500px;*/
          height: 90%;
          background-color: rgba(255,255,255,0.9);
        }
      </style>
 
+     <link rel="stylesheet" href="vendors/awesomplete.css">
+
      <style>
+        #test {
+          width: 50%
+        }
+        .awesomplete {
+          width: 80%;
+          font-size: 16px;
+        }
+        #search {
+          width: 80%;
+          font-size: 16px;
+        }
         #sidenav {
-          height: 100%;
+          height: 80vh;
           width: 0;
           position: fixed;
           z-index: 1;
@@ -21,13 +34,15 @@
           /*background-color: white;*/
           overflow-x: hidden;
           transition: 0.5s;
+          /*padding: 16px;*/
           padding-top: 60px;
         }
         #force {
-          height: 100%;
+          height: 80vh;
           /*width: 100%;*/
           transition: margin-right .5s;
           padding: 16px;
+          /*padding-bottom: 30px;*/
           /*overflow-x: scroll;*/
         }
         .node circle {
@@ -58,11 +73,19 @@
 <body>
 <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.5/require.min.js"></script> -->
 <script src="vendors/require.min.js"></script>
+<script src="vendors/awesomplete.min.js"></script>
 <!-- <div id="jsoneditor" style="width: 400px; height: 400px;"></div> -->
+
 
 <div id="test">
   <span style="font-size:30px;cursor:pointer" onclick="openNav()">
-    &#9776; open
+    &#9776;
+    <input id="search", placeholder="search">
+    <!-- <input class="awesomplete"
+      style="font-size:20pt"
+      data-minchars="1"
+      data-maxitems="5"
+      data-list="China, India, Japan, Russia, UK, USA" /> -->
   </span>
 </div>
 <div id="sidenav">
@@ -73,8 +96,8 @@
 
 <script>
 function openNav() {
-    document.getElementById("sidenav").style.width = "500px";
-    document.getElementById("force").style.marginRight = "500px";
+    document.getElementById("sidenav").style.width = "400px";
+    document.getElementById("force").style.marginRight = "400px";
 }
 </script>
 
@@ -129,9 +152,16 @@ function openNav() {
   require(["d3", "jsoneditor", "js/force","js/ccdb"], (d3, JSONEditor, force, ccdb) => {
     let container = document.getElementById("jsoneditor");
     let options = {};
-    let editor = new JSONEditor(container, options);
+    editor = new JSONEditor(container, options);
     db = new ccdb.CCDB("https://cors-anywhere.herokuapp.com/https://ccdb.esss.lu.se/");
-    sim = new force.Force(1000,1000)
+    searchbox = document.getElementById("search");
+    db.get_slot_names().then((slot_names) => {
+      new Awesomplete(searchbox, {
+        list: slot_names
+      });
+    });
+
+    sim = new force.Force("1000","600")
         .fetch( db.get_slot.bind(db) )
         .nodeSelect( (json) => {editor.set(json); editor.expandAll();} )
         .root_key("_ROOT");

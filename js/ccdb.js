@@ -4,6 +4,7 @@ define(["d3"], (d3) => {
     constructor(url) {
       this._url = url;
       this._slots_url = this._url + "/rest/slots/";
+      this._slot_names_url = this._url + "/rest/slotNames";
       this._count = 0;
       this._nodes = {};
     }
@@ -24,6 +25,17 @@ define(["d3"], (d3) => {
       node.uuid = ++this._count;
       this._nodes[name] = node;
       return node;
+    }
+
+    async get_slot_names() {
+      if (!this._slot_names) {
+        let json = await this.query(this._slot_names_url);
+        this._slot_names = [];
+        for (let slot of json.names) {
+          this._slot_names.push(slot.name);
+        }
+      }
+      return this._slot_names;
     }
   };
 

@@ -40,7 +40,8 @@ define(["d3"], function (d3) {
         .attr("id", "forcesvg")
         // .attr("width", this._width)
         // .attr("height", this._height);
-        .attr("preserveAspectRatio", "xMinYMin meet")
+        // .attr("preserveAspectRatio", "xMinYMin meet")
+        .attr("preserveAspectRatio", "none")
         .attr("viewBox", `0 0 ${this._width} ${this._height}`)
         .classed("svg-content", true);
 
@@ -51,14 +52,14 @@ define(["d3"], function (d3) {
 
 
       // create a border for the svg.
-      this._svg.append("rect")
-       			.attr("x", 0)
-       			.attr("y", 0)
-       			.attr("height", this._width)
-       			.attr("width", this._height)
-            .style("stroke", 'black')
-       			.style("fill", "none")
-       			.style("stroke-width", 5);
+      // this._svg.append("rect")
+      //  			.attr("x", 0)
+      //  			.attr("y", 0)
+      //  			.attr("height", this._width)
+      //  			.attr("width", this._height)
+      //       .style("stroke", 'black')
+      //  			.style("fill", "none")
+      //  			.style("stroke-width", 5);
 
       // fetch first data from source:
       // this._data = [await this._fetch(this._root_key)];
