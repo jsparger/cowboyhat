@@ -43,7 +43,8 @@ define(["d3"], function (d3) {
         // .attr("preserveAspectRatio", "xMinYMin meet")
         .attr("preserveAspectRatio", "none")
         .attr("viewBox", `0 0 ${this._width} ${this._height}`)
-        .classed("svg-content", true);
+        .classed("svg-content", true)
+        .on('mousedown', this.mousedown.bind(this));
 
       // create groups in the svg for links and nodes
       // do links first so links will be drawn underneath nodes.
@@ -311,7 +312,8 @@ define(["d3"], function (d3) {
       d.busy = true;
       this._selected = this._data[d.name];
       this.update_selections();
-      this._nodeSelect(await this._fetch(d.name));
+      let node = d.user_created ? d : await this._fetch(d.name);
+      this._nodeSelect(node);
       d.busy = false;
       this.update_selections();
     }
@@ -327,6 +329,27 @@ define(["d3"], function (d3) {
       // TODO:
       // d.expanded ? this._collapse(this) : this._expand(this);
       d.busy = false;
+      this.update();
+    }
+
+    mousedown() {
+      console.log("mousedown");
+      if (d3.event.shiftKey) {
+        console.log("shift+mousedown");
+        if (!this._selected) return;
+        let name = `${Date.now()}:NEW`;
+        let d = this.make_node(name);
+        d.user_created = true;
+        d.x = this._selected.x;
+        d.y = this._selected.y;
+        this._data[name] = d;
+        this._selected.links.push({source: {name: this._selected.name}, target: {name: d.name}, link_type: "children"});
+      }
+      else {
+        this._selected = null;
+        this.update_selections();
+        this._nodeSelect({});
+      }
       this.update();
     }
 
@@ -358,6 +381,9 @@ define(["d3"], function (d3) {
       else if (this._selected === node) {
         // return "red";
         return "#20FF00"
+      }
+      else if (node.user_created) {
+        return "red";
       }
       else if (!node.fetched) {
         return "#3182bd"; // collapsed package

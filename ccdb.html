@@ -177,6 +177,7 @@ function openNav() {
       new Awesomplete(searchbox, {
         list: slot_names
       });
+      searchbox.placeholder = "search";
     });
 
     d3.select('#search').on('awesomplete-selectcomplete', () => {
