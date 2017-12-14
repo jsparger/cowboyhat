@@ -183,12 +183,13 @@ define(["d3"], function (d3) {
       // append a circle to each group to represent the node. Make it clickable,
       //  binding "this" so it behaves correctly.
       nodeEnter.append("circle")
-        .attr("r", 5);
+        .attr("r", (d) => { return d.name==="_ROOT"?20:5;});
       // append a text to each group to act as the node label.
       nodeEnter.append("text")
-        .attr("dy", "1.35em")
+        .attr("dy", (d) => { return d.name==="_ROOT"?"0.35em":"1.35em";})
         .text(function (d) {
           // take area structure out of names
+          if (d.name === "_ROOT") return "ESS";
           return d.name.split(":").pop();
         })
 
@@ -272,21 +273,36 @@ define(["d3"], function (d3) {
         .attr("y", function(d) { return (this._data[d.target.name].y + this._data[d.source.name].y)/2; }.bind(this));
     }
 
+    // async select(name) {
+    //   if (!this._data[name]) {
+    //     let node = await this._fetch(name);
+    //     this.assimilate(node);
+    //     this.update();
+    //     if (node.parents && node.parents[0]) {
+    //       await this.select(node.parents[0]);
+    //     }
+    //   }
+    //   else if (!this._data[name].fetched) {
+    //     this.assimilate(await this._fetch(name));
+    //   }
+    //   this._selected = this._data[name];
+    //   this.update();
+    //   this._nodeSelect(await this._fetch(name));
+    // }
+
     async select(name) {
       if (!this._data[name]) {
         let node = await this._fetch(name);
-        this.assimilate(node);
-        this.update();
         if (node.parents && node.parents[0]) {
           await this.select(node.parents[0]);
         }
       }
-      else if (!this._data[name].fetched) {
-        this.assimilate(await this._fetch(name));
-      }
+
+      await this.dblclick(this.make_node(name));
       this._selected = this._data[name];
       this.update();
       this._nodeSelect(await this._fetch(name));
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
     async click(d) {
@@ -301,11 +317,11 @@ define(["d3"], function (d3) {
     }
 
     async dblclick(d) {
-      if (d3.event.defaultPrevented) return; // ignore drag
+      if (d3.event && d3.event.defaultPrevented) return; // ignore drag
       // if (d.busy) return;
       d.busy = true;
       this.update_selections();
-      if (!d.fetched) {
+      if (!this._data[d.name] || !this._data[d.name].fetched) {
         this.assimilate(await this._fetch(d.name));
       }
       // TODO:
@@ -340,7 +356,8 @@ define(["d3"], function (d3) {
       	return "#20FF00"; // busy
       }
       else if (this._selected === node) {
-        return "red";
+        // return "red";
+        return "#20FF00"
       }
       else if (!node.fetched) {
         return "#3182bd"; // collapsed package
@@ -349,7 +366,8 @@ define(["d3"], function (d3) {
         return "#c6dbef"; // parent
       }
       else {
-        return "#fd8d3c"; // leaf node
+        // return "#fd8d3c"; // leaf node
+        return "#c6dbef";
       }
     }
 

@@ -78,7 +78,7 @@
 
 
 <div id="test">
-  <span style="font-size:30px;cursor:pointer" onclick="openNav()">
+  <span style="font-size:20px;cursor:pointer">
     &#9776;
     <input id="search", placeholder="search">
     <!-- <input class="awesomplete"
@@ -160,9 +160,14 @@ function openNav() {
     db = new ccdb.CCDB("https://cors-anywhere.herokuapp.com/https://ccdb.esss.lu.se/");
 
     // configure graph
-    sim = new force.Force("1000","600")
+    sim = new force.Force("1250","750")
         .fetch( db.get_slot.bind(db) )
-        .nodeSelect( (json) => {editor.set(json); editor.expandAll();} )
+        .nodeSelect( (json) => {
+          editor.set(json);
+          editor.setMode("form");
+          editor.expandAll();
+          openNav();
+        })
         .root_key("_ROOT");
     sim.init();
 
