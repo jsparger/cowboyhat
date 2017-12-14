@@ -150,10 +150,23 @@ function openNav() {
   let db = null;
   let editor = null;
   require(["d3", "jsoneditor", "js/force","js/ccdb"], (d3, JSONEditor, force, ccdb) => {
+
+    // configure jsoneditor
     let container = document.getElementById("jsoneditor");
     let options = {};
     editor = new JSONEditor(container, options);
+
+    // configure ccdb
     db = new ccdb.CCDB("https://cors-anywhere.herokuapp.com/https://ccdb.esss.lu.se/");
+
+    // configure graph
+    sim = new force.Force("1000","600")
+        .fetch( db.get_slot.bind(db) )
+        .nodeSelect( (json) => {editor.set(json); editor.expandAll();} )
+        .root_key("_ROOT");
+    sim.init();
+
+    // configure search box
     searchbox = document.getElementById("search");
     db.get_slot_names().then((slot_names) => {
       new Awesomplete(searchbox, {
@@ -161,11 +174,10 @@ function openNav() {
       });
     });
 
-    sim = new force.Force("1000","600")
-        .fetch( db.get_slot.bind(db) )
-        .nodeSelect( (json) => {editor.set(json); editor.expandAll();} )
-        .root_key("_ROOT");
-    sim.init();
+    d3.select('#search').on('awesomplete-selectcomplete', () => {
+      // console.log(d3.event.text.value);
+      sim.select(d3.event.text.value);
+    });
   });
 </script>
 </body>

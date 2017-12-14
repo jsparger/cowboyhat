@@ -94,8 +94,10 @@ define(["d3"], function (d3) {
 
       // copy the old coordinates
       let old_d = this._data[d.name];
-      d.x = old_d.x; d.vx = old_d.vx; d.fx = old_d.fx;
-      d.y = old_d.y; d.vy = old_d.vy; d.fy = old_d.fy;
+      if (old_d) {
+        d.x = old_d.x; d.vx = old_d.vx; d.fx = old_d.fx;
+        d.y = old_d.y; d.vy = old_d.vy; d.fy = old_d.fy;
+      }
 
       // look for links in the CCDB node
       let relationships = ['children','controls','powers'];
@@ -268,6 +270,23 @@ define(["d3"], function (d3) {
       this._links.selectAll("text")
         .attr("x", function(d) { return (this._data[d.target.name].x + this._data[d.source.name].x)/2; }.bind(this))
         .attr("y", function(d) { return (this._data[d.target.name].y + this._data[d.source.name].y)/2; }.bind(this));
+    }
+
+    async select(name) {
+      if (!this._data[name]) {
+        let node = await this._fetch(name);
+        this.assimilate(node);
+        this.update();
+        if (node.parents && node.parents[0]) {
+          await this.select(node.parents[0]);
+        }
+      }
+      else if (!this._data[name].fetched) {
+        this.assimilate(await this._fetch(name));
+      }
+      this._selected = this._data[name];
+      this.update();
+      this._nodeSelect(await this._fetch(name));
     }
 
     async click(d) {
