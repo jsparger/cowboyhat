@@ -51,7 +51,11 @@ define(["d3"], function (d3) {
       this._links = this._svg.append("g").selectAll(".link");
       this._nodes = this._svg.append("g").selectAll(".node");
 
-
+      // this._cursor = this._svg.append("circle")
+      //   .attr("r", 30)
+      //   .attr("transform", "translate(-100,-100)")
+      //   .attr("class", "cursor")
+      //   .attr("visibility","hidden");
       // create a border for the svg.
       // this._svg.append("rect")
       //  			.attr("x", 0)
@@ -343,6 +347,8 @@ define(["d3"], function (d3) {
         d.x = this._selected.x;
         d.y = this._selected.y;
         this._data[name] = d;
+        // d.links.push({target: {name: this._selected.name}, source: {name: d.name}, link_type: "parent"});
+        // TODO: this is correct but requires changes elsewhere.
         this._selected.links.push({source: {name: this._selected.name}, target: {name: d.name}, link_type: "children"});
       }
       else {
