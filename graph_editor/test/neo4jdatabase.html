@@ -1,0 +1,34 @@
+<head>
+  <script src="../vendors/neo4j-web.min.js"></script>
+  <script src="../vendors/require.min.js"></script>
+</head>
+<body>
+  <script>
+    require.config({
+      paths: {
+        "neo4j-database": "../js/neo4j-database",
+      }
+    });
+  </script>
+  <script>
+    require(["neo4j-database"],(neo) => {
+      db = new neo.Neo4jDatatase("neo4j.cow.boy.hat");
+      let node = {
+        labels: ["Smell"],
+        properties: {
+          type: "trash",
+          stink_level: 10
+        }
+      };
+
+      let resolve = (result) => {
+        console.log(result);
+      };
+
+      db.create_node(node).then(resolve);
+
+      db.delete_node({id:75890}).then(resolve);
+    }
+  );
+  </script>
+</body>
