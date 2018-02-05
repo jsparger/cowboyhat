@@ -1,0 +1,85 @@
+<head>
+  <script src="../vendors/neo4j-web.min.js"></script>
+  <script src="../vendors/require.min.js"></script>
+  <style>
+    #force {
+      height: 80vh;
+      /*width: 100%;*/
+      transition: margin-right .5s;
+      padding: 16px;
+      /*padding-bottom: 30px;*/
+      /*overflow-x: scroll;*/
+    }
+    .node circle {
+      cursor: pointer;
+      stroke: #3182bd;
+      stroke-width: 1.5px;
+    }
+    .node text {
+      font: 10px sans-serif;
+      pointer-events: none;
+      text-anchor: middle;
+    }
+
+    .link text {
+      font: 10px sans-serif;
+      pointer-events: none;
+      text-anchor: middle;
+    }
+
+    .link line {
+      fill: none;
+      stroke: #9ecae1;
+      stroke-width: 1.5px;
+    }
+  </style>
+</head>
+<body>
+  <div id="force"></div>
+  <script>
+    require.config({
+      paths: {
+        "d3": "../vendors/d3.v4.min",
+        "neo4j-database": "../js/neo4j-database",
+        "vis": "../js/vis",
+      }
+    });
+  </script>
+  <script>
+    let fcn = async(vis, neo) => {
+      db = new neo.Neo4jDatatase("neo4j.cow.boy.hat");
+      result = await db.run_query("match q=(:Dog)--(:Bone) return q limit 5");
+      segments = result.records[0]._fields[0].segments;
+      relationships = [];
+      for (let s of segments) {
+        r = s.relationship;
+        r.source = s.start;
+        r.target = s.end;
+        r.id = r.identity.low;
+        r.source.id = r.source.identity.low;
+        r.target.id = r.target.identity.low;
+        relationships.push(r);
+      }
+
+      let w = 500; let h = 500;
+      fs = new vis.ForceSimulation(w,h);
+      fv = new vis.ForceVisualization(w,h);
+
+      fs.init();
+      fv.init();
+      fs._sim.on("tick", fv.tick.bind(fv));
+
+      for (let r of relationships) {
+        fs.add(r);
+      }
+      fv.update_entity_list(Object.values(fs._nodes), Object.values(fs._links));
+      fs.restart_simulation();
+
+      console.log(fs);
+    };
+
+    require(["vis", "neo4j-database"], (vis, neo) => {
+      fcn(vis,neo);
+    });
+  </script>
+</body>

@@ -16,6 +16,10 @@ define([], () => {
     return `(${v}:${node_labels_string(n)} ${node_properties_string(n)})`;
   }
 
+  // function result_parse(result) {
+  //
+  // }
+
   class Neo4jDatatase {
     constructor(url) {
       this.url = "bolt://" + url
