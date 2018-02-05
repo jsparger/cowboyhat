@@ -13,9 +13,10 @@ define(["d3"], (d3) => {
     init() {
       // initialize the simulation
       this._sim = d3.forceSimulation()
-        .force("charge", d3.forceManyBody().distanceMax(50).strength(-30))
-        .force("gravity", d3.forceManyBody().distanceMin(50).strength(30))
+        .force("charge", d3.forceManyBody().distanceMax(100).strength(-3))
+        .force("gravity", d3.forceManyBody().distanceMin(100).strength(1))
         .force("link", d3.forceLink().distance(50).strength(1))
+        .force("collision", d3.forceCollide(10));
         // .force("center", d3.forceCenter(this._width/2, this._height/2));
         // .on("tick", this.tick.bind(this));
     }
@@ -28,12 +29,12 @@ define(["d3"], (d3) => {
       if (this.is_relationship(x)) {
         this.add(x.source);
         this.add(x.target);
-        this._links[x.id] = x;
+        if (!(x.id in this._links)) this._links[x.id] = x;
       }
       else {
-        x.x = this._width/2;
-        x.y = this._height/2;
-        this._nodes[x.id] = x;
+        x.x = this._width/2 + 5*Math.random();
+        x.y = this._height/2 + 5*Math.random();
+        if (!(x.id in this._nodes)) this._nodes[x.id] = x;
       }
     }
 

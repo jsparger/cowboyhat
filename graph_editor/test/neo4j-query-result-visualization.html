@@ -35,6 +35,7 @@
   </style>
 </head>
 <body>
+  Query:<input id="query" type="text"><br>
   <div id="force"></div>
   <script>
     require.config({
@@ -46,36 +47,58 @@
     });
   </script>
   <script>
-    let fcn = async(vis, neo) => {
-      db = new neo.Neo4jDatatase("neo4j.cow.boy.hat");
-      result = await db.run_query("match q=(:Dog)--(:Bone) return q limit 5");
+    let execute_query = async (db,fs,fv,query) => {
+      console.log(query);
+      result = await db.run_query(query);
+      console.log(result);
       segments = result.records[0]._fields[0].segments;
       relationships = [];
-      for (let s of segments) {
-        r = s.relationship;
-        r.source = s.start;
-        r.target = s.end;
-        r.id = r.identity.low;
-        r.source.id = r.source.identity.low;
-        r.target.id = r.target.identity.low;
-        relationships.push(r);
+      nodes = [];
+      for (let record of result.records) {
+        for (let f of record._fields) {
+          f.id = f.identity.low;
+          nodes.push(f);
+
+          if (!f.segments) continue;
+          for (let s of f.segments) {
+            let r = s.relationship;
+            r.source = s.start;
+            r.target = s.end;
+            r.id = r.identity.low;
+            r.source.id = r.source.identity.low;
+            r.target.id = r.target.identity.low;
+            relationships.push(r);
+          }
+        }
       }
 
-      let w = 500; let h = 500;
-      fs = new vis.ForceSimulation(w,h);
-      fv = new vis.ForceVisualization(w,h);
-
-      fs.init();
-      fv.init();
-      fs._sim.on("tick", fv.tick.bind(fv));
-
+      for (let n of nodes) {
+        fs.add(n);
+      }
       for (let r of relationships) {
         fs.add(r);
       }
       fv.update_entity_list(Object.values(fs._nodes), Object.values(fs._links));
       fs.restart_simulation();
+    };
 
-      console.log(fs);
+    let fcn = async(vis, neo) => {
+      db = new neo.Neo4jDatatase("neo4j.cow.boy.hat");
+      let w = 500; let h = 500;
+      fs = new vis.ForceSimulation(w,h);
+      fv = new vis.ForceVisualization(w,h);
+      fs.init();
+      fv.init();
+      fs._sim.on("tick", fv.tick.bind(fv));
+
+      document.getElementById("query")
+        .addEventListener("keyup", function(event) {
+          event.preventDefault();
+          if (event.keyCode === 13) {
+              let query = document.getElementById('query').value;
+              execute_query(db,fs,fv, query);
+          }
+        });
     };
 
     require(["vis", "neo4j-database"], (vis, neo) => {
